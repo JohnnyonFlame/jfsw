@@ -54,6 +54,14 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 extern USERp User[MAXSPRITES];
 void DumpSounds(void);
 
+char *music_fmt[] = {
+	"track??.ogg",
+	"track??.wav",
+	"track??.mid",
+	"track??.mp3",
+	NULL        
+};
+
 // Parentally locked sounds list
 int PLocked_Sounds[] = {
     483,328,334,335,338,478,450,454,452,453,456,457,458,455,460,462,
@@ -444,29 +452,49 @@ PlaySong(char *song_file_name, int cdaudio_track, BOOL loop, BOOL restart)
     StopSong();
         
     if (!SW_SHAREWARE) {
-        char oggtrack[] = "track??.ogg";
+        char *oggtrack;
             
-        if (CD_Play(cdaudio_track, TRUE) == CD_Ok) {
+#if 0
+	//We don't need this on the GCW0
+	if (CD_Play(cdaudio_track, TRUE) == CD_Ok) {
             SongType = SongTypeCDA;
             SongTrack = cdaudio_track;
             return TRUE;
         }
-            
-        if (cdaudio_track >= 0) {
-            oggtrack[5] = '0' + (cdaudio_track / 10) % 10;
-            oggtrack[6] = '0' + cdaudio_track % 10;
-        }
-            
-        if (LoadSong(oggtrack)) {
-            SongVoice = FX_PlayLoopedAuto(SongPtr, SongLength, 0, 0, 0,
-                                          255, 255, 255, FX_MUSIC_PRIORITY, MUSIC_ID);
-            if (SongVoice > FX_Ok) {
-                SongType = SongTypeVoc;
-                SongTrack = cdaudio_track;
-                SongName = strdup(oggtrack);
-                return TRUE;
-            }
-        }
+#endif
+           
+
+    int fmt_i = -1;
+           
+    for (;;)
+    {
+	    fmt_i += 1;
+	    if (music_fmt[fmt_i] == NULL) break;
+	    
+	    oggtrack = strdup(music_fmt[fmt_i]);
+	    
+	    if (cdaudio_track >= 0) {
+		    oggtrack[5] = '0' + (cdaudio_track / 10) % 10;
+		    oggtrack[6] = '0' + cdaudio_track % 10;
+	    }
+	    
+	    if (LoadSong(oggtrack)) {
+		    #ifndef USE_SDLMIXER
+		    SongVoice = FX_PlayLoopedAuto(SongPtr, SongLength, 0, 0, 0,
+						  255, 255, 255, FX_MUSIC_PRIORITY, MUSIC_ID);
+		    #else
+		    MUSIC_PlaySong(SongPtr, SongLength, MUSIC_LoopSong);  
+		    #endif
+		    
+		    if (SongVoice > FX_Ok) {
+			    SongType = SongTypeVoc;
+			    SongTrack = cdaudio_track;
+			    SongName = strdup(oggtrack);
+			    return TRUE;
+		    }
+	    }
+	}
+
     }
     
     if (!song_file_name || !LoadSong(song_file_name)) {
@@ -502,7 +530,9 @@ StopSong(VOID)
 {
     if (DemoMode)    
         return;
-        
+#ifdef USE_SDLMIXER
+   MUSIC_StopSong();
+#else
     if (SongType == SongTypeVoc && SongVoice >= 0) {
         FX_StopSound(SongVoice);
     } else if (SongType == SongTypeMIDI) {
@@ -510,8 +540,9 @@ StopSong(VOID)
     } else if (SongType == SongTypeCDA) {
         CD_Stop();
     }
+#endif
     SongType = SongTypeNone;
-
+    
     if (SongName) {
         free(SongName);
     }
@@ -540,6 +571,7 @@ PauseSong(BOOL pauseon)
 void
 SetSongVolume(int volume)
 {
+	MUSIC_SetVolume(volume);
 }
 
 BOOL

@@ -54,6 +54,18 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 
 //#define PLOCK_VERSION TRUE
 
+static char *QUIT_MSG[] = {
+	"PRESS (A) TO QUIT, (B) TO FIGHT ON.",
+	"CONFUCIOUS SAY:\n\"HE WHO QUITS, TOTALLY SUCKS!\"\nQuit? (A/B)",
+	"GO AHEAD, LEAVE, BUT WHILE YOU'RE\nGONE, EVIL WILL BE TAKING OVER!\nQuit? (A/B)",
+	"ALL OF JAPAN IS COUNTING ON YOU!\nONLY A LOSER COULD LET THEM DOWN.\nQuit? (A/B)",
+	"THIS IS TOO MUCH!  NOW WHERE\nDID I PUT THOSE CHEAT CODES?\nQuit? (A/B)",
+	"PRESS (A) TO RUN HOME TO MOMMY,\n(B) TO BE A MAN.",
+	"YOU DO KNOW, THAT WHILE YOU'RE\nAWAY, WE'LL BE RESTOCKING MT. FUJI\nWITH A MILLION NEW MONSTERS?\nQuit? (A/B)",
+	"COME BACK ANY TIME, WE ARE ALWAYS\nLOOKING FOR A SACK OF RIPPER CHOW!\nQuit? (A/B)",
+	"LET'S MAKE A STEALTHY EXIT TO DOS!\nQuit? (A/B)"
+};
+
 
 short TimeLimitTable[9] = {0,3,5,10,15,20,30,45,60}; 
 
@@ -155,6 +167,17 @@ static void UpdateValidModes(int bpp, int fs)
 		numvalidresolutions++;
 	}
 }
+
+static BOOL ApplyA320Default(void)
+{
+	CONFIG_SetDefaultA320();
+}
+
+static BOOL ApplyGCW0Default(void)
+{
+	CONFIG_SetDefaultGCW();
+}
+
 static BOOL ApplyModeSettings(void)
 {
 	int lastx, lasty, lastbpp, lastfs;
@@ -234,52 +257,78 @@ MenuItem screen_i[] =
 
 MenuGroup screengroup = {65, 5, "^Screen", screen_i, pic_newgametitl, 0, m_defshade, NULL,NULL, 0};
 
-MenuItem mouse_i[] = 
-    {
-    {DefSlider(sldr_mouse, 0, "Mouse Speed"), OPT_XS,            OPT_LINE(0), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
-    {DefInert(0, NULL), OPT_XSIDE,                               OPT_LINE(0), 0, m_defshade, 0, NULL, NULL, NULL},    // Blank line for mouse
-    
-    {DefButton(btn_mouse_aim, 0, "Mouse Aiming"), OPT_XS,        OPT_LINE(1), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
-    {DefButton(btn_mouse_invert, 0, "Invert Mouse"), OPT_XS,     OPT_LINE(2), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
-    {DefNone}
-    };
-
-MenuGroup mousegroup = {65, 5, "^Mouse", mouse_i, pic_newgametitl, 0, m_defshade, NULL,NULL, 0};
-
 BOOL MNU_KeySetupCustom(UserCall call, MenuItem *item);
 MenuGroup keysetupgroup = {0, 0, NULL, NULL, 0, 0, m_defshade, MNU_KeySetupCustom, NULL, 0};
 
 BOOL MNU_MouseSetupCustom(UserCall call, MenuItem *item);
 MenuGroup mousesetupgroup = {0, 0, NULL, NULL, 0, 0, m_defshade, MNU_MouseSetupCustom, NULL, 0};
 
+MenuItem mouse_i[] = 
+{
+	{DefSlider(sldr_mouse, 0, "Mouse Speed"), OPT_XS,            OPT_LINE(0), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
+	{DefInert(0, NULL), OPT_XSIDE,                               OPT_LINE(0), 0, m_defshade, 0, NULL, NULL, NULL},    // Blank line for mouse
+	
+	{DefButton(btn_mouse_aim, 0, "Mouse Aiming"), OPT_XS,        OPT_LINE(1), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
+	{DefButton(btn_mouse_invert, 0, "Invert Mouse"), OPT_XS,     OPT_LINE(2), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
+	
+	{DefLayer(0, "Buttons Setup", &mousesetupgroup),OPT_XS,           OPT_LINE(3),1,m_defshade,0,NULL,NULL,NULL},
+	{DefNone}
+};
+
+MenuGroup mousegroup = {65, 5, "^Mouse", mouse_i, pic_newgametitl, 0, m_defshade, NULL,NULL, 0};
+
+MenuItem joystick_i[] = 
+{
+	{DefSlider(sldr_analog, 0, "Analog Speed"), OPT_XS,            OPT_LINE(0), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
+	{DefInert(0, NULL), OPT_XSIDE,                               OPT_LINE(0), 0, m_defshade, 0, NULL, NULL, NULL},    // Blank line for mouse
+	{DefSlider(sldr_analogdead, 0, "Analog Deadzone"), OPT_XS,            OPT_LINE(1), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
+	{DefInert(0, NULL), OPT_XSIDE,                               OPT_LINE(1), 0, m_defshade, 0, NULL, NULL, NULL},    // Blank line for mouse
+		   
+	{DefButton(btn_analog_invert, 0, "Invert Aim"), OPT_XS,     OPT_LINE(2), 1, m_defshade, 0, NULL, MNU_MouseCheck, NULL},
+	
+	{DefDisabled(0, "Axis Setup", &mousesetupgroup),OPT_XS,           OPT_LINE(3),1,m_defshade,0,NULL,NULL,NULL},
+	{DefNone}
+};
+
+MenuGroup joystickgroup = {65, 5, "^Analog Nub", joystick_i, pic_newgametitl, 0, m_defshade, NULL,NULL, 0};
+
+MenuItem controlscheme_i[] =
+{
+	{DefOption(0, "Default GCW0 Controls"), OPT_XS,                  OPT_LINE(0), 1, m_defshade, 0, ApplyGCW0Default, NULL, NULL},
+	{DefOption(0, "Default A320 Controls"), OPT_XS,                  OPT_LINE(1), 1, m_defshade, 0, ApplyA320Default, NULL, NULL},
+	
+	{DefLayer(0, "Customize Layout", &keysetupgroup),OPT_XS,           OPT_LINE(3),1,m_defshade,0,NULL,NULL,NULL},
+	
+	{DefNone}
+};
+MenuGroup controlschemegroup = {65, 5, "^Ctrl. Scheme", controlscheme_i, pic_newgametitl, 0, m_defshade, NULL,NULL, 0};
+
 MenuItem inputsetup_i[] =
-    {
-    {DefLayer(0, "Keys Setup", &keysetupgroup),OPT_XS,           OPT_LINE(0),1,m_defshade,0,NULL,NULL,NULL},
-    {DefLayer(0, "Mouse Setup", &mousesetupgroup),OPT_XS,           OPT_LINE(1),1,m_defshade,0,NULL,NULL,NULL},
-    {DefDisabled(0, "Joystick Setup", &keysetupgroup),OPT_XS,           OPT_LINE(2),1,m_defshade,0,NULL,NULL,NULL},
-    {DefDisabled(0, "Advanced Mouse Setup", &keysetupgroup),OPT_XS,           OPT_LINE(4),1,m_defshade,0,NULL,NULL,NULL},
-    {DefDisabled(0, "Advanced Joystick Setup", &keysetupgroup),OPT_XS,           OPT_LINE(5),1,m_defshade,0,NULL,NULL,NULL},
-    {DefNone}
-    };
+{
+	{DefLayer(0, "Control Scheme", &controlschemegroup),OPT_XS,           OPT_LINE(0),1,m_defshade,0,NULL,NULL,NULL},
+	{DefLayer(0, "Mouse Setup", &mousegroup),OPT_XS,              OPT_LINE(1), 1, m_defshade,0,NULL, MNU_MouseCheck, NULL},
+	{DefLayer(0, "Analog Nub Setup", &joystickgroup),OPT_XS,              OPT_LINE(2), 1, m_defshade,0,NULL, MNU_MouseCheck, NULL},
+	
+	{DefNone}
+};
 MenuGroup inputsetupgroup = {65, 5, "^Input Setup", inputsetup_i, pic_newgametitl, 0, m_defshade, NULL,NULL, 0};
 
 MenuItem options_i[] =
     {
     {DefLayer(0, "Screen Menu", &screengroup),OPT_XS,            OPT_LINE(0), 1, m_defshade,0,NULL, NULL, NULL},
-    {DefLayer(0, "Mouse Menu", &mousegroup),OPT_XS,              OPT_LINE(1), 1, m_defshade,0,NULL, MNU_MouseCheck, NULL},
-    {DefLayer(0, "Sound Menu", &soundgroup),OPT_XS,              OPT_LINE(2), 1, m_defshade,0,MNU_TryMusicInit, MNU_MusicFxCheck, NULL},
-    {DefLayer(0, "Input Setup", &inputsetupgroup),OPT_XS,        OPT_LINE(3), 1,m_defshade,0,NULL,NULL,NULL},
+    {DefLayer(0, "Sound Menu", &soundgroup),OPT_XS,              OPT_LINE(1), 1, m_defshade,0,MNU_TryMusicInit, MNU_MusicFxCheck, NULL},
+    {DefLayer(0, "Input Setup", &inputsetupgroup),OPT_XS,        OPT_LINE(2), 1,m_defshade,0,NULL,NULL,NULL},
     #ifndef PLOCK_VERSION // No need for this in weener version
-    {DefLayer(0, "Kid Mode", &parentalgroup),OPT_XS,             OPT_LINE(4), 1, m_defshade,0,NULL, NULL, NULL},
+    {DefLayer(0, "Kid Mode", &parentalgroup),OPT_XS,             OPT_LINE(3), 1, m_defshade,0,NULL, NULL, NULL},
     #endif
-    {DefButton(btn_messages, 0, "Messages"), OPT_XS,             OPT_LINE(5), 1, m_defshade, 0, NULL, NULL, NULL},
+    {DefButton(btn_messages, 0, "Messages"), OPT_XS,             OPT_LINE(4), 1, m_defshade, 0, NULL, NULL, NULL},
 //    {DefButton(btn_bobbing, 0, "View Bobbing"), OPT_XS,          OPT_LINE(7), 1, m_defshade, 0, NULL, NULL, NULL},
-    {DefButton(btn_shadows, 0, "Shadows"), OPT_XS,               OPT_LINE(6), 1, m_defshade, 0, NULL, NULL, NULL},
-    {DefButton(btn_auto_run, 0, "Auto Run"), OPT_XS,             OPT_LINE(7), 1, m_defshade, 0, NULL, NULL, NULL},
-    {DefButton(btn_crosshair, 0, "Crosshair"), OPT_XS,           OPT_LINE(8), 1, m_defshade, 0, NULL, NULL, NULL},
-    {DefButton(btn_auto_aim, 0, "Auto-Aiming"), OPT_XS,          OPT_LINE(9), 1, m_defshade, 0, NULL, NULL, NULL},
-    {DefButton(btn_voxels, 0, "Voxel Sprites"), OPT_XS,          OPT_LINE(10), 1, m_defshade, 0, NULL, NULL, NULL},
-    {DefButton(btn_stats, 0, "Level Stats"), OPT_XS,             OPT_LINE(11), 1, m_defshade, 0, NULL, MNU_StatCheck, NULL},
+    {DefButton(btn_shadows, 0, "Shadows"), OPT_XS,               OPT_LINE(5), 1, m_defshade, 0, NULL, NULL, NULL},
+    {DefButton(btn_auto_run, 0, "Auto Run"), OPT_XS,             OPT_LINE(6), 1, m_defshade, 0, NULL, NULL, NULL},
+    {DefButton(btn_crosshair, 0, "Crosshair"), OPT_XS,           OPT_LINE(7), 1, m_defshade, 0, NULL, NULL, NULL},
+    {DefButton(btn_auto_aim, 0, "Auto-Aiming"), OPT_XS,          OPT_LINE(8), 1, m_defshade, 0, NULL, NULL, NULL},
+    {DefButton(btn_voxels, 0, "Voxel Sprites"), OPT_XS,          OPT_LINE(9), 1, m_defshade, 0, NULL, NULL, NULL},
+    {DefButton(btn_stats, 0, "Level Stats"), OPT_XS,             OPT_LINE(10), 1, m_defshade, 0, NULL, MNU_StatCheck, NULL},
     {DefNone}
     };
 
@@ -426,7 +475,7 @@ short       menuarrayptr;       // Index into menuarray
 MenuGroup   *menuarray[MaxLayers], *currentmenu;
 BOOL UsingMenus = FALSE;
 
-#define MAXDIALOG       2       // Maximum number of dialog strings allowed
+#define MAXDIALOG       5     // Maximum number of dialog strings allowed
 char *dialog[MAXDIALOG];
 
 // Global menu setting values ////////////////////////////////////////////////////////////////////
@@ -786,14 +835,14 @@ BOOL MNU_KeySetupCustom(UserCall call, MenuItem *item)
 			j = OPT_LINE(0)+(i-topitem)*8;
 			MNU_DrawSmallString(OPT_XS, j, ds, (i==currentkey)?0:12, 16);
 
-			p = getkeyname(KeyboardKeys[i][0]);
+			p = KB_ScanCodeToString_clean(KeyboardKeys[i][0]);
 			if (!p || KeyboardKeys[i][0]==0xff) p = "  -";
 			MNU_DrawSmallString(OPT_XSIDE, j, (char*)p, (i==currentkey)?-5:12,
 					(i==currentkey && currentcol==0) ? 14:16);
 
 			if (i == gamefunc_Show_Console) continue;
 
-			p = getkeyname(KeyboardKeys[i][1]);
+			p = KB_ScanCodeToString_clean(KeyboardKeys[i][1]);
 			if (!p || KeyboardKeys[i][1]==0xff) p = "  -";
 			MNU_DrawSmallString(OPT_XSIDE + 4*14, j, (char*)p, (i==currentkey)?-5:12,
 					(i==currentkey && currentcol==1) ? 14:16);
@@ -1087,9 +1136,9 @@ MNU_OrderCustom(UserCall call, MenuItem * item)
         CONTROL_GetUserInput(&tst_input);
         //order_input_buffered.dir = tst_input.dir;
         // Support a few other keys too
-        if (KEY_PRESSED(KEYSC_SPACE)||KEY_PRESSED(KEYSC_ENTER))
+	if (KEY_PRESSED(KEYSC_CTRL)||KEY_PRESSED(KEYSC_ENTER))
             {
-            KEY_PRESSED(KEYSC_SPACE) = FALSE;
+            KEY_PRESSED(KEYSC_CTRL) = FALSE;
             KEY_PRESSED(KEYSC_ENTER) = FALSE;
             tst_input.dir = dir_South;
             }
@@ -1444,7 +1493,27 @@ MNU_QuitCustom(UserCall call, MenuItem_p item)
 
         memset(dialog, 0, sizeof(dialog));
 
-        dialog[0] = S_QUITYN;
+        //dialog[0] = S_QUITYN;
+    
+    	
+            //dialog[0] = S_QUITYN;
+	
+	srand(time(NULL));
+	int i=0;
+	int RAND = rand()%(sizeof(QUIT_MSG)/sizeof(char*));
+	char *__str;
+	char *__cpy = (char *)malloc(strlen(QUIT_MSG[RAND]) + 1 * sizeof(char));
+	
+	strcpy(__cpy, QUIT_MSG[RAND]);
+	dialog[0] = strtok(__cpy, "\n");
+	
+	__str = strtok(NULL, "\n");
+	
+	while (__str != NULL) {
+		i++;
+		dialog[i] = __str;
+		__str = strtok(NULL, "\n");
+	}
         }
     
     ret = MNU_Dialog();
@@ -1472,7 +1541,7 @@ MNU_QuitCustom(UserCall call, MenuItem_p item)
         ExitMenus();
         }
 
-    if (KB_KeyPressed(sc_Y) || KB_KeyPressed(sc_Enter))
+    if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter))
         {
         if (CommPlayers >= 2)
             MultiPlayQuitFlag = TRUE;
@@ -1585,6 +1654,8 @@ MNU_InitMenus(void)
     pClearTextLine(Player + myconnectindex, TEXT_INFO_LINE(0));
         
     slidersettings[sldr_mouse] = gs.MouseSpeed/(MOUSE_SENS_MAX_VALUE/SLDR_MOUSESENSEMAX);
+    slidersettings[sldr_analog] = gs.AnalogSpeed/(MOUSE_SENS_MAX_VALUE/SLDR_MOUSESENSEMAX);
+    slidersettings[sldr_analogdead] = gs.AnalogDeadzone;
     
     slidersettings[sldr_sndfxvolume] = gs.SoundVolume / (FX_VOL_MAX_VALUE/SLDR_SNDFXVOLMAX);
     slidersettings[sldr_musicvolume] = gs.MusicVolume / (MUSIC_VOL_MAX_VALUE/SLDR_MUSICVOLMAX);
@@ -1617,7 +1688,8 @@ MNU_InitMenus(void)
     buttonsettings[btn_shadows] = gs.Shadows; 
     
     buttonsettings[btn_mouse_aim] = gs.MouseAimingType;      
-    buttonsettings[btn_mouse_invert] = gs.MouseInvert;    
+    buttonsettings[btn_mouse_invert] = gs.MouseInvert;  
+    buttonsettings[btn_analog_invert] = gs.AnalogInvert;
     buttonsettings[btn_sound] = gs.FxOn;      
     buttonsettings[btn_music] = gs.MusicOn;   
     buttonsettings[btn_talking] = gs.Talking; 
@@ -1666,6 +1738,11 @@ MNU_MeasureStringLarge(char *string, short *w, short *h)
     {
     short ndx, width, height;
     char c;
+    
+#ifdef USE_SDLMIXER
+    
+#endif
+    
     short pic;
 
     width = 0;
@@ -2025,7 +2102,7 @@ MNU_Dialog(void)
     CONTROL_ClearUserInput(&mnu_input);
     CONTROL_GetUserInput(&mnu_input);
 
-    if (KB_KeyPressed(sc_Y) || KB_KeyPressed(sc_Enter))
+    if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter))
         return (TRUE);
     else
         return (FALSE);
@@ -2643,7 +2720,7 @@ MNU_MouseCheck(MenuItem *item)
 static BOOL
 MNU_TryMusicInit(void)
     {
-    if (PlaySong(0, RedBookSong[Level], TRUE, FALSE))
+    if (gs.MusicOn)
         {
         if (currentmenu->cursor == 0)
             MNU_MusicCheck(&currentmenu->items[currentmenu->cursor+1]);
@@ -2787,9 +2864,12 @@ MNU_DoButton(MenuItem_p item, BOOL draw)
                 }
             //extra_text = gs.MouseAimingType ? "Momentary" : "Toggle";       
             break;
-        case btn_mouse_invert:
-            gs.MouseInvert = state = buttonsettings[item->button];
-            break;
+	case btn_mouse_invert:
+		gs.MouseInvert = state = buttonsettings[item->button];
+		break;
+	case btn_analog_invert:
+		gs.AnalogInvert = state = buttonsettings[item->button];
+		break;
 //        case btn_bobbing:
 //            gs.Bobbing = state = buttonsettings[item->button];
 //            break;
@@ -2816,7 +2896,10 @@ MNU_DoButton(MenuItem_p item, BOOL draw)
                 if (gs.MusicOn)
                     {
                     bak = DemoMode;
-                    PlaySong(LevelSong, RedBookSong[Level], TRUE, TRUE);    
+		    if (!InMenuLevel)
+			PlaySong(LevelSong, RedBookSong[Level], TRUE, TRUE);  
+		    else
+			PlaySong(LevelSong, RedBookSong[0], TRUE, TRUE);
                     DemoMode = bak;
                     }
                 else
@@ -3019,6 +3102,38 @@ MNU_DoSlider(short dir, MenuItem_p item, BOOL draw)
         gs.MouseSpeed = offset * (MOUSE_SENS_MAX_VALUE/SLDR_MOUSESENSEMAX);
         CONTROL_SetMouseSensitivity(gs.MouseSpeed<<2);
         break;
+	
+    case sldr_analog:
+	    barwidth = SLDR_ANALOGSENSEMAX;
+	    offset = slidersettings[sldr_analog] += dir;
+	    
+	    if (TEST(item->flags, mf_disabled))
+		    break;
+	    
+	    offset = max(offset, 1);
+	    offset = min(offset, SLDR_ANALOGSENSEMAX-1);
+	    
+	    slidersettings[sldr_analog] = offset;
+	    
+	    gs.AnalogSpeed = offset * (ANALOG_SENS_MAX_VALUE/SLDR_ANALOGSENSEMAX);
+	    CONTROL_SetAnalogSensitivity(gs.AnalogSpeed<<4);
+	    break;
+	    
+    case sldr_analogdead:
+	    barwidth = SLDR_ANALOGDEADMAX;
+	    offset = slidersettings[sldr_analogdead] += dir;
+	    
+	    if (TEST(item->flags, mf_disabled))
+		    break;
+	    
+	    offset = max(offset, 1);
+	    offset = min(offset, SLDR_ANALOGDEADMAX-1);
+	    
+	    slidersettings[sldr_analogdead] = offset;
+	    
+	    gs.AnalogDeadzone = offset;
+	    CONTROL_SetAnalogDeadzone(gs.AnalogDeadzone);
+	    break;
         
     case sldr_sndfxvolume:
         barwidth = SLDR_SNDFXVOLMAX;

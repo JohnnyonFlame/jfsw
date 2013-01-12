@@ -236,6 +236,10 @@ void ReadGameSetup( int32 scripthandle )
     if (dummy != -1) gs.MouseInvert = dummy;
     
     dummy = -1;
+    SCRIPT_GetNumber( scripthandle, "Options", "AnalogInvert",&dummy);
+    if (dummy != -1) gs.AnalogInvert = dummy;
+    
+    dummy = -1;
     SCRIPT_GetNumber( scripthandle, "Options", "Kiwi",&dummy);
     if (dummy != -1) gs.ParentalLock = dummy;
     
@@ -331,6 +335,8 @@ void WriteGameSetup( int32 scripthandle)
    SCRIPT_PutNumber( scripthandle, "Options", "MouseAimingOn",dummy,FALSE,FALSE);
    dummy = gs.MouseInvert;
    SCRIPT_PutNumber( scripthandle, "Options", "MouseInvert",dummy,FALSE,FALSE);
+   dummy = gs.AnalogInvert;
+   SCRIPT_PutNumber( scripthandle, "Options", "AnalogInvert",dummy,FALSE,FALSE);
    dummy = gs.Stats;
    SCRIPT_PutNumber( scripthandle, "Options", "Stats",dummy,FALSE,FALSE);
    

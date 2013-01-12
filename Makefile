@@ -3,6 +3,7 @@
 # Create Makefile.user yourself to provide your own overrides
 # for configurable values
 -include Makefile.user
+-include ../jfaudiolib.git/Makefile.shared
 
 ##
 ##
@@ -27,10 +28,10 @@ AUDIOLIBROOT ?= ../jfaudiolib.git
 
 # Engine options
 SUPERBUILD ?= 1
-POLYMOST ?= 1
-USE_OPENGL ?= 1
+POLYMOST ?= 0
+USE_OPENGL ?= 0
 DYNAMIC_OPENGL ?= 1
-NOASM ?= 0
+NOASM ?= 1
 LINKED_GTK ?= 0
 
 
@@ -50,7 +51,7 @@ o=o
 
 ifneq (0,$(RELEASE))
   # debugging disabled
-  debug=-fomit-frame-pointer -O2
+  debug=-fno-exceptions -fno-rtti -O2 -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -G0 -mbranch-likely
 else
   # debugging enabled
   debug=-ggdb -O0
@@ -58,13 +59,15 @@ endif
 
 include $(AUDIOLIBROOT)/Makefile.shared
 
-CC=gcc
-CXX=g++
+CROSS_COMPILE ?=
+
+CC=$(CROSS_COMPILE)gcc
+CXX=$(CROSS_COMPILE)g++
 OURCFLAGS=$(debug) -W -Wall -Wimplicit -Wno-char-subscripts -Wno-unused \
 	-fno-pic -funsigned-char -fno-strict-aliasing -DNO_GCC_BUILTINS \
 	-I$(INC) -I$(EINC) -I$(MACTROOT) -I$(AUDIOLIBROOT)/include
 OURCXXFLAGS=-fno-exceptions -fno-rtti
-LIBS=-lm
+LIBS=-lm -flto
 GAMELIBS=
 NASMFLAGS=-s #-g
 EXESUFFIX=
@@ -160,7 +163,7 @@ include $(EROOT)/Makefile.shared
 
 ifeq ($(PLATFORM),LINUX)
 	NASMFLAGS+= -f elf
-	GAMELIBS+= $(JFAUDIOLIB_LDFLAGS)
+	GAMELIBS+= $(JFAUDIOLIB_LDFLAGS) -lasound
 endif
 ifeq ($(PLATFORM),WINDOWS)
 	OURCFLAGS+= -DUNDERSCORES -I$(DXROOT)/include
@@ -175,6 +178,10 @@ endif
 
 ifeq ($(RENDERTYPE),SDL)
 	OURCFLAGS+= $(subst -Dmain=SDL_main,,$(shell sdl-config --cflags))
+	
+	ifeq (1,$(JFAUDIOLIB_USE_SDLMIXER))
+		OURCFLAGS+= -DUSE_SDLMIXER
+	endif
 
 	ifeq (1,$(HAVE_GTK2))
 		OURCFLAGS+= -DHAVE_GTK2 $(shell pkg-config --cflags gtk+-2.0)

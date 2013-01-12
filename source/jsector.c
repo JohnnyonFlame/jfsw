@@ -1084,7 +1084,9 @@ JAnalyzeSprites(SPRITEp tspr)
     // Take care of autosizing
     DoAutoSize(tspr);
 
+#ifdef USE_OPENGL
     if (getrendermode() == 3 && md_tilehasmodel(tspr->picnum) >= 0 && usemodels) return;
+#endif
     
     // Check for voxels
     //if (bVoxelsOn)

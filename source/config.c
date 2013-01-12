@@ -67,12 +67,12 @@ int32 FXDevice    = 0;
 int32 MusicDevice = 0;
 int32 FXVolume    = 192;
 int32 MusicVolume = 128;
-int32 NumVoices   = 32;
+int32 NumVoices   = 8;
 int32 NumChannels = 2;
 int32 NumBits     = 16;
-int32 MixRate     = 44100;
+int32 MixRate     = 32000;
 
-int32 UseMouse = 1, UseJoystick = 0;
+int32 UseMouse = 1, UseJoystick = 1;
 
 byte KeyboardKeys[NUMGAMEFUNCTIONS][2];
 int32 MouseFunctions[MAXMOUSEBUTTONS][2];
@@ -154,7 +154,7 @@ char * CONFIG_FunctionNumToName( int32 func )
    }
 
 /*
-===================
+===================ni
 =
 = CONFIG_AnalogNameToNum
 =
@@ -206,6 +206,68 @@ char * CONFIG_AnalogNumToName( int32 func )
 ===================
 */
 
+void CONFIG_SetDefaultA320( void )
+{
+	int32 i,f;
+	byte k1,k2;
+	
+	memset(KeyboardKeys, 0xff, sizeof(KeyboardKeys));
+	for (i=0; i < (int32)(sizeof(keydefaults_a320)/sizeof(keydefaults_a320[0]))/3; i++) {
+		f = CONFIG_FunctionNameToNum( keydefaults_a320[3*i+0] );
+		if (f == -1) continue;
+		k1 = KB_StringToScanCode( keydefaults_a320[3*i+1] );
+		k2 = KB_StringToScanCode( keydefaults_a320[3*i+2] );
+		
+		k1 = (k1>0) ? k1 : 0xff;
+		k2 = (k2>0) ? k2 : 0xff;
+		
+		
+		KeyboardKeys[f][0] = k1;
+		KeyboardKeys[f][1] = k2;
+	}
+	
+	
+	//INITIALIZE KEY CODES
+	for (i=0; i<NUMGAMEFUNCTIONS; i++)
+	{
+		if (i == gamefunc_Show_Console)
+			OSD_CaptureKey(KeyboardKeys[i][0]);
+		else
+			CONTROL_MapKey( i, KeyboardKeys[i][0], KeyboardKeys[i][1] );
+	}
+}
+
+void CONFIG_SetDefaultGCW( void )
+{
+	int32 i,f;
+	byte k1,k2;
+	
+	memset(KeyboardKeys, 0xff, sizeof(KeyboardKeys));
+	for (i=0; i < (int32)(sizeof(keydefaults)/sizeof(keydefaults[0]))/3; i++) {
+		f = CONFIG_FunctionNameToNum( keydefaults[3*i+0] );
+		if (f == -1) continue;
+		k1 = KB_StringToScanCode( keydefaults[3*i+1] );
+		k2 = KB_StringToScanCode( keydefaults[3*i+2] );
+		
+		k1 = (k1>0) ? k1 : 0xff;
+		k2 = (k2>0) ? k2 : 0xff;
+		
+		
+		KeyboardKeys[f][0] = k1;
+		KeyboardKeys[f][1] = k2;
+	}
+	
+	
+	//INITIALIZE KEY CODES
+	for (i=0; i<NUMGAMEFUNCTIONS; i++)
+	{
+		if (i == gamefunc_Show_Console)
+			OSD_CaptureKey(KeyboardKeys[i][0]);
+		else
+			CONTROL_MapKey( i, KeyboardKeys[i][0], KeyboardKeys[i][1] );
+	}
+}
+
 void CONFIG_SetDefaults( void )
    {
    // JBF 20031211
@@ -213,8 +275,8 @@ void CONFIG_SetDefaults( void )
    byte k1,k2;
 
    ScreenMode = 1;
-   ScreenWidth = 640;
-   ScreenHeight = 480;
+   ScreenWidth = 320;
+   ScreenHeight = 240;
    ScreenBPP = 8;
    FXDevice = 0;
    MusicDevice = 0;
@@ -246,11 +308,25 @@ void CONFIG_SetDefaults( void )
       if (f == -1) continue;
       k1 = KB_StringToScanCode( keydefaults[3*i+1] );
       k2 = KB_StringToScanCode( keydefaults[3*i+2] );
-
+      
+      k1 = (k1>0) ? k1 : 0xff;
+      k2 = (k2>0) ? k2 : 0xff;
+      
+      
       KeyboardKeys[f][0] = k1;
       KeyboardKeys[f][1] = k2;
    }
 
+   
+   //INITIALIZE KEY CODES
+   for (i=0; i<NUMGAMEFUNCTIONS; i++)
+   {
+	   if (i == gamefunc_Show_Console)
+		   OSD_CaptureKey(KeyboardKeys[i][0]);
+	   else
+		   CONTROL_MapKey( i, KeyboardKeys[i][0], KeyboardKeys[i][1] );
+   }
+   
    memset(MouseFunctions, -1, sizeof(MouseFunctions));
    for (i=0; i < (int32)(sizeof(mousedefaults)/sizeof(char*)); i++) {
       MouseFunctions[i][0] = CONFIG_FunctionNameToNum( mousedefaults[i] );
@@ -270,16 +346,31 @@ void CONFIG_SetDefaults( void )
 	MouseAnalogueAxes[i] = CONFIG_AnalogNameToNum( mouseanalogdefaults[i] );
    }
    CONTROL_SetMouseSensitivity(32768<<2);
+   
+   //INITIALIZE MOUSE
+   
+   for (i=0; i<MAXMOUSEBUTTONS; i++)
+   {
+	   CONTROL_MapButton( MouseFunctions[i][0], i, FALSE, controldevice_mouse );
+	   CONTROL_MapButton( MouseFunctions[i][1], i, TRUE,  controldevice_mouse );
+   }
+   for (i=0; i<MAXMOUSEAXES; i++)
+   {
+	   CONTROL_MapAnalogAxis( i, MouseAnalogueAxes[i], controldevice_mouse);
+	   CONTROL_MapDigitalAxis( i, MouseDigitalFunctions[i][0], 0,controldevice_mouse );
+	   CONTROL_MapDigitalAxis( i, MouseDigitalFunctions[i][1], 1,controldevice_mouse );
+	   CONTROL_SetAnalogAxisScale( i, MouseAnalogueScale[i], controldevice_mouse );
+   }
 
    memset(JoystickFunctions, -1, sizeof(JoystickFunctions));
    for (i=0; i < (int32)(sizeof(joystickdefaults)/sizeof(char*)); i++) {
       JoystickFunctions[i][0] = CONFIG_FunctionNameToNum( joystickdefaults[i] );
       JoystickFunctions[i][1] = CONFIG_FunctionNameToNum( joystickclickeddefaults[i] );
    }
-
+   
    memset(JoystickDigitalFunctions, -1, sizeof(JoystickDigitalFunctions));
    for (i=0; i < (int32)(sizeof(joystickanalogdefaults)/sizeof(char*)); i++) {
-	JoystickAnalogueScale[i] = 65536;
+	JoystickAnalogueScale[i] = 1<<20;
 	JoystickAnalogueDead[i] = 1000;
 	JoystickAnalogueSaturate[i] = 9500;
 
@@ -287,6 +378,20 @@ void CONFIG_SetDefaults( void )
 	JoystickDigitalFunctions[i][1] = CONFIG_FunctionNameToNum( joystickdigitaldefaults[i*2+1] );
 
 	JoystickAnalogueAxes[i] = CONFIG_AnalogNameToNum( joystickanalogdefaults[i] );
+   }
+   
+   //INITIALIZE JOYSTICKS
+   for (i=0;i<MAXJOYBUTTONS;i++)
+   {
+	   CONTROL_MapButton( JoystickFunctions[i][0], i, FALSE, controldevice_joystick );
+	   CONTROL_MapButton( JoystickFunctions[i][1], i, TRUE,  controldevice_joystick );
+   }
+   for (i=0;i<MAXJOYAXES;i++)
+   {
+	   CONTROL_MapAnalogAxis(i, JoystickAnalogueAxes[i], controldevice_joystick);
+	   CONTROL_MapDigitalAxis( i, JoystickDigitalFunctions[i][0], 0, controldevice_joystick );
+	   CONTROL_MapDigitalAxis( i, JoystickDigitalFunctions[i][1], 1, controldevice_joystick );
+	   CONTROL_SetAnalogAxisScale( i, JoystickAnalogueScale[i], controldevice_joystick );
    }
 }
 
@@ -403,6 +508,14 @@ void CONFIG_SetupMouse( void )
    function = 32768;
    SCRIPT_GetNumber( scripthandle, "Controls","MouseSensitivity",&function);
    gs.MouseSpeed = function;
+   
+   function = 65536;
+   SCRIPT_GetNumber( scripthandle, "Controls","AnalogSensitivity",&function);
+   gs.AnalogSpeed = function;
+   
+   function = 15;
+   SCRIPT_GetNumber( scripthandle, "Controls","AnalogDeadzone",&function);
+   gs.AnalogDeadzone = function;
 
    for (i=0; i<MAXMOUSEBUTTONS; i++)
       {
@@ -418,6 +531,7 @@ void CONFIG_SetupMouse( void )
       }
    
    CONTROL_SetMouseSensitivity(gs.MouseSpeed<<2);
+   CONTROL_SetAnalogSensitivity(gs.AnalogSpeed<<4);
    }
 
 /*
@@ -526,9 +640,11 @@ int32 CONFIG_ReadSetup( void )
       SCRIPT_GetNumber( scripthandle, "Screen Setup", "MaxRefreshFreq", (int32*)&maxrefreshfreq);
 #endif
  
+#ifdef USE_OPENGL
       SCRIPT_GetNumber( scripthandle, "Screen Setup", "GLTextureMode", &gltexfiltermode);
       SCRIPT_GetNumber( scripthandle, "Screen Setup", "GLAnisotropy", &glanisotropy);
       SCRIPT_GetNumber( scripthandle, "Screen Setup", "GLUseTextureCompr", &glusetexcompr);
+#endif
 
       SCRIPT_GetNumber( scripthandle, "Sound Setup", "FXDevice",&FXDevice);
       SCRIPT_GetNumber( scripthandle, "Sound Setup", "MusicDevice",&MusicDevice);
@@ -589,9 +705,12 @@ void CONFIG_WriteSetup( void )
 #ifdef RENDERTYPEWIN
    SCRIPT_PutNumber( scripthandle, "Screen Setup", "MaxRefreshFreq",maxrefreshfreq,FALSE,FALSE);
 #endif
+
+#ifdef USE_OPENGL
    SCRIPT_PutNumber( scripthandle, "Screen Setup", "GLTextureMode",gltexfiltermode,FALSE,FALSE);
    SCRIPT_PutNumber( scripthandle, "Screen Setup", "GLAnisotropy",glanisotropy,FALSE,FALSE);
    SCRIPT_PutNumber( scripthandle, "Screen Setup", "GLUseTextureCompr",glusetexcompr,FALSE,FALSE);
+#endif
    
    SCRIPT_PutNumber( scripthandle, "Sound Setup", "FXDevice", FXDevice, FALSE, FALSE);
    SCRIPT_PutNumber( scripthandle, "Sound Setup", "MusicDevice", MusicDevice, FALSE, FALSE);
@@ -608,6 +727,8 @@ void CONFIG_WriteSetup( void )
    SCRIPT_PutNumber( scripthandle, "Controls","UseMouse",UseMouse,FALSE,FALSE);
    SCRIPT_PutNumber( scripthandle, "Controls","UseJoystick",UseJoystick,FALSE,FALSE);
    SCRIPT_PutNumber( scripthandle, "Controls","MouseSensitivity",gs.MouseSpeed,FALSE,FALSE);
+   SCRIPT_PutNumber( scripthandle, "Controls","AnalogSensitivity",gs.AnalogSpeed,FALSE,FALSE);
+   SCRIPT_PutNumber( scripthandle, "Controls","AnalogDeadzone",gs.AnalogDeadzone,FALSE,FALSE);
    
    WriteGameSetup(scripthandle);
    

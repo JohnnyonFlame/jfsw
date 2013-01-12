@@ -31,6 +31,8 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 typedef struct
 {
 long MouseSpeed;
+long AnalogSpeed;
+long AnalogDeadzone;
 long MusicVolume;
 long SoundVolume;
 CHAR BorderNum;
@@ -39,6 +41,7 @@ CHAR BorderTile;
 BOOL MouseAimingType;
 BOOL MouseLook;
 BOOL MouseInvert;
+BOOL AnalogInvert;
 BOOL Bobbing;
 BOOL Tilting;
 BOOL Shadows;

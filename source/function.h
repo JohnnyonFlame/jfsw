@@ -35,7 +35,7 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #ifndef _function_public_
 #define _function_public_
 
-#define NUMGAMEFUNCTIONS 50
+#define NUMGAMEFUNCTIONS 51
 
 extern char * gamefunctions[];
 
@@ -47,6 +47,7 @@ enum
    gamefunc_Turn_Right,
    gamefunc_Strafe,
    gamefunc_Fire,
+   gamefunc_SecondaryFire,
    gamefunc_Open,
    gamefunc_Run,
    gamefunc_AutoRun,

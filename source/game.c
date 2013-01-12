@@ -180,6 +180,8 @@ BYTE AutoColor;
 
 GAME_SET gs = {
 0, // mouse speed
+26208, // analog speed
+25,	//analog deadzone
 0, // music vol
 0, // fx vol
 2, // border
@@ -188,6 +190,7 @@ GAME_SET gs = {
 FALSE, // mouse aiming
 FALSE, // mouse look
 FALSE, // mouse invert
+FALSE, // analog invert
 TRUE, // bobbing
 FALSE, // tilting
 TRUE, // shadows
@@ -1748,6 +1751,9 @@ LogoLevel(VOID)
     MONO_PRINT(ds);
 
     // start music at logo
+
+    SetSongVolume(gs.MusicVolume);
+
     strcpy(LevelSong,"theme.mid");
     PlaySong(LevelSong, RedBookSong[0], TRUE, TRUE);
 
@@ -2122,7 +2128,8 @@ MenuLevel(VOID)
 
 	if (gs.MusicOn)
         {
-        PlaySong(NULL, RedBookSong[0], TRUE, FALSE);
+        //PlaySong(NULL, RedBookSong[0], TRUE, FALSE);
+        //Let's have the music on the menu too, shall we?
         }    
     
     if (AutoNet)
@@ -3083,7 +3090,16 @@ VOID InitRunLevel(VOID)
         if (gs.Ambient)    
             StartAmbientSound();
         SetCrosshair();
-        PlaySong(LevelSong, -1, TRUE, TRUE);
+	
+	int track;
+	if (Level == 0) {
+		track = RedBookSong[4+RANDOM_RANGE(10)];
+	} else {
+		track = RedBookSong[Level];
+	}
+	
+        PlaySong(LevelSong, track, TRUE, TRUE);
+    
         SetRedrawScreen(Player + myconnectindex);
         // crappy little hack to prevent play clock from being overwritten
         // for load games
@@ -4975,6 +4991,8 @@ VOID GetHelpInput(PLAYERp pp)
     }    
 
 short MirrorDelay;    
+
+short getCrouch=0;
     
 VOID
 getinput(SW_PACKET *loc)
@@ -4999,10 +5017,11 @@ getinput(SW_PACKET *loc)
     ControlInfo info;
     boolean running;
     int32 turnamount;
-    static int32 turnheldtime;
+    static int32 turnheldtime, turnhtemp;
     int32 keymove;
     int32 momx, momy;
     long aimvel;
+    long pvel;
 
     extern BOOL MenuButtonAutoRun;
     extern BOOL MenuButtonAutoAim;
@@ -5168,6 +5187,13 @@ getinput(SW_PACKET *loc)
                     }
                 }
 
+                if (info.dpitch > 0)
+			pvel = -labs((-info.dpitch) >> 8);
+		else
+			pvel = -info.dpitch >> 8;
+		
+		if (gs.AnalogInvert)
+			pvel = -pvel;
     
     if (running)
         {
@@ -5216,16 +5242,39 @@ getinput(SW_PACKET *loc)
             }
         else
             {
+	    turnhtemp = turnheldtime;
             turnheldtime = 0;
             }
         }
-        
-    if (BUTTON(gamefunc_Strafe_Left) && !pp->sop)
-        svel += keymove;
+    
+    if (pp->sop && (BUTTON(gamefunc_Strafe_Left) || BUTTON(gamefunc_Strafe_Right)))
+        turnheldtime = turnhtemp;
+	    
+    if (BUTTON(gamefunc_Strafe_Left))
+	    if (!pp->sop)
+		svel += keymove;
+	    else
+	    {
+		    turnheldtime += synctics;
+		    if (turnheldtime >= TURBOTURNTIME)
+			    angvel -= turnamount;
+		    else
+			    angvel -= PREAMBLETURN;
+	    }
 
-    if (BUTTON(gamefunc_Strafe_Right) && !pp->sop)
-        svel += -keymove;
+    if (BUTTON(gamefunc_Strafe_Right))
+	    if (!pp->sop)
+		    svel -= keymove;
+	    else
+	    {
+		    turnheldtime += synctics;
+		    if (turnheldtime >= TURBOTURNTIME)
+			    angvel += turnamount;
+		    else
+			    angvel += PREAMBLETURN;
+	    }
         
+    
     if (BUTTON(gamefunc_Move_Forward))
         {
         vel += keymove;
@@ -5264,7 +5313,7 @@ getinput(SW_PACKET *loc)
     loc->vel = momx;
     loc->svel = momy;
     loc->angvel = angvel;
-    loc->aimvel = aimvel;
+    loc->aimvel = aimvel + pvel;
 
     if (MenuButtonAutoRun)
         {
@@ -5353,6 +5402,13 @@ getinput(SW_PACKET *loc)
         SET(loc->bits, next_weapon + 1);
         }
         
+        if (BUTTON(gamefunc_SecondaryFire)) {
+		
+		USERp u = User[pp->PlayerSprite];
+		
+		
+		SET(loc->bits, u->WeaponNum + 1);
+	}
         
     if (BUTTON(gamefunc_Previous_Weapon))
         {
@@ -5412,7 +5468,20 @@ getinput(SW_PACKET *loc)
 
     SET_LOC_KEY(loc->bits, SK_OPERATE, BUTTON(gamefunc_Open));
     SET_LOC_KEY(loc->bits, SK_JUMP, BUTTON(gamefunc_Jump));
-    SET_LOC_KEY(loc->bits, SK_CRAWL, BUTTON(gamefunc_Crouch));
+    
+    if (BUTTONJUSTPRESSED(gamefunc_Crouch))
+	getCrouch = !getCrouch; 
+	    
+    {	    
+	    if (TEST(sector[(pp)->cursectnum].extra, SECTFX_UNDERWATER))
+	    {
+		    getCrouch = 0;
+		    SET_LOC_KEY(loc->bits, SK_CRAWL, BUTTON(gamefunc_Crouch));
+	    }
+	    else
+		    SET_LOC_KEY(loc->bits, SK_CRAWL, getCrouch);
+	    
+    }
 
     SET_LOC_KEY(loc->bits, SK_TURN_180, BUTTON(gamefunc_TurnAround));
 

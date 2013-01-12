@@ -174,7 +174,7 @@ extern BOOL MultiPlayQuitFlag;
 typedef enum
     {
     sldr_none,
-    sldr_mouse, sldr_sndfxvolume, sldr_musicvolume, sldr_scrsize, sldr_brightness, 
+    sldr_mouse, sldr_analog, sldr_analogdead, sldr_sndfxvolume, sldr_musicvolume, sldr_scrsize, sldr_brightness, 
     sldr_bordertile, sldr_gametype, sldr_netlevel, sldr_monsters, sldr_killlimit,
     sldr_timelimit, sldr_playercolor, sldr_videores, sldr_videobpp, sldr_max
     } SLDRType;
@@ -183,6 +183,8 @@ typedef enum
 #define MAX_SLDR_WIDTH	16	// maximum size of slider before x is compressed
     
 #define SLDR_MOUSESENSEMAX              20
+#define SLDR_ANALOGDEADMAX		 40
+#define SLDR_ANALOGSENSEMAX             20
 #define SLDR_SNDFXVOLMAX                16
 #define SLDR_MUSICVOLMAX                16
 #define SLDR_SCRSIZEMAX                 14
@@ -200,7 +202,8 @@ typedef enum
 #define SLDR_PLAYERCOLORMAX             8   // Up to 8 players different colors
 
 
-#define MOUSE_SENS_MAX_VALUE (1<<16)              
+#define ANALOG_SENS_MAX_VALUE (1<<16)   
+#define MOUSE_SENS_MAX_VALUE (1<<16)   
 #define MUSIC_VOL_MAX_VALUE 255              
 #define FX_VOL_MAX_VALUE 255              
 
@@ -208,7 +211,8 @@ typedef enum
 typedef enum
     {
     btn_none, btn_auto_run, btn_crosshair, btn_auto_aim,
-    btn_mouse_aim, btn_messages, btn_mouse_invert, btn_bobbing, btn_shadows, 
+    btn_mouse_aim, btn_analog_aim, btn_analog_invert,
+    btn_messages, btn_mouse_invert, btn_bobbing, btn_shadows, 
     btn_sound, btn_music, btn_talking, btn_ambience, btn_flipstereo, 
     btn_res0, btn_res1, btn_res2, btn_res3, btn_res4, btn_res5, btn_res6,
     btn_markers, btn_teamplay, btn_friendlyfire,btn_parental,btn_nuke,

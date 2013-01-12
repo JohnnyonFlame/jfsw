@@ -106,6 +106,9 @@ extern char  JoystickDigitalAxes[MAXJOYAXES][2][MAXFUNCTIONLENGTH];
 extern char setupfilename[64];
 extern char ExternalControlFilename[64];
 
+void CONFIG_SetDefaultGCW( void );
+void CONFIG_SetDefaultA320( void );
+
 void SetMouseDefaults( void );
 void SetJoystickDefaults( void );
 void SetDefaultKeyDefinitions( void );
