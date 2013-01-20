@@ -2294,7 +2294,10 @@ MNU_GetSaveCustom(void)
         }
     else
         {
+
         strcpy(BackupSaveGameDescr, SaveGameDescr[save_num]);
+        /* Auto-names the saves for the users. */
+        sprintf(SaveGameDescr[save_num], "Level %i, Kills %i", Level, Player->Kills);
 
         // clear keyboard buffer
         while (KB_KeyWaiting())

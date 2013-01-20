@@ -51,7 +51,7 @@ o=o
 
 ifneq (0,$(RELEASE))
   # debugging disabled
-  debug=-fno-exceptions -fno-rtti -O2 -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -G0 -mbranch-likely
+  debug=-ffast-math
 else
   # debugging enabled
   debug=-ggdb -O0
@@ -65,7 +65,7 @@ CC=$(CROSS_COMPILE)gcc
 CXX=$(CROSS_COMPILE)g++
 OURCFLAGS=$(debug) -W -Wall -Wimplicit -Wno-char-subscripts -Wno-unused \
 	-fno-pic -funsigned-char -fno-strict-aliasing -DNO_GCC_BUILTINS \
-	-I$(INC) -I$(EINC) -I$(MACTROOT) -I$(AUDIOLIBROOT)/include
+	-I$(INC) -I$(EINC) -I$(MACTROOT) -I$(AUDIOLIBROOT)/include -march=mips32r2
 OURCXXFLAGS=-fno-exceptions -fno-rtti
 LIBS=-lm -flto
 GAMELIBS=
