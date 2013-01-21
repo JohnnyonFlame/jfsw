@@ -1575,7 +1575,7 @@ MNU_QuickLoadCustom(UserCall call, MenuItem_p item)
         memset(dialog, 0, sizeof(dialog));
     
         dialog[0] = "Load saved game";
-        sprintf(QuickLoadDescrDialog,"\"%s\" (Y/N)?",SaveGameDescr[QuickLoadNum]);
+        sprintf(QuickLoadDescrDialog,"\"%s\" (A/B)?",SaveGameDescr[QuickLoadNum]);
         dialog[1] = QuickLoadDescrDialog;
         }
 
@@ -1592,7 +1592,7 @@ MNU_QuickLoadCustom(UserCall call, MenuItem_p item)
 
     if (ret == FALSE)
         {
-        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter))
+        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_LeftControl))
             {    
             cust_callback = NULL;
             if (ReloadPrompt)
@@ -1600,7 +1600,7 @@ MNU_QuickLoadCustom(UserCall call, MenuItem_p item)
                 ReloadPrompt = FALSE;
                 bak = GlobInfoStringTime;
                 GlobInfoStringTime = 999;
-                PutStringInfo(pp, "Press SPACE to restart");
+                PutStringInfo(pp, "Press A to restart");
                 GlobInfoStringTime = bak;
                 }
             
@@ -2390,18 +2390,18 @@ MNU_LoadSaveMove(UserCall call, MenuItem_p item)
         
         if (SavePrompt)
             {
-            if (KB_KeyPressed(sc_Y) || KB_KeyPressed(sc_Enter))
+            if (KB_KeyPressed(sc_Y) || KB_KeyPressed(sc_LeftControl))
                 {
-		KB_ClearKeyDown(sc_Y);
-		KB_ClearKeyDown(sc_Enter);
+								KB_ClearKeyDown(sc_Y);
+								KB_ClearKeyDown(sc_LeftControl);
                 SavePrompt = FALSE;
                 // use input
                 item->custom();
                 }
             else    
-            if (KB_KeyPressed(sc_N))
+            if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_LeftAlt))
                 {
-		KB_ClearKeyDown(sc_N);
+								KB_ClearKeyDown(sc_N);
                 strcpy(SaveGameDescr[game_num], BackupSaveGameDescr);
                 SavePrompt = FALSE;
                 MenuInputMode = FALSE;
@@ -2409,7 +2409,7 @@ MNU_LoadSaveMove(UserCall call, MenuItem_p item)
             }
         else    
         // get input
-        switch (MNU_InputString(SaveGameDescr[game_num], 114))
+        switch (FALSE)
             {
         case -1:                        // Cancel Input (pressed ESC) or Err
             strcpy(SaveGameDescr[game_num], BackupSaveGameDescr);
@@ -2501,7 +2501,7 @@ MNU_LoadSaveDraw(UserCall call, MenuItem_p item)
         if (SavePrompt)    
             {
             MNU_DrawString(SS_XSTART + SS_BORDER_SIZE + 5, SS_YSTART + SS_BORDER_SIZE + 47, "Overwrite previous", 1, 16);
-            MNU_DrawString(SS_XSTART + SS_BORDER_SIZE + 5, SS_YSTART + SS_BORDER_SIZE + 47 + 12, "  saved game (Y/N)", 1, 16);
+            MNU_DrawString(SS_XSTART + SS_BORDER_SIZE + 5, SS_YSTART + SS_BORDER_SIZE + 47 + 12, "  saved game (A/B)", 1, 16);
             }
         }
     else
