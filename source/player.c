@@ -6573,7 +6573,7 @@ DoPlayerBeginDie(PLAYERp pp)
         {
         bak = GlobInfoStringTime;
         GlobInfoStringTime = 999;
-        PutStringInfo(pp, "Press SPACE to restart");
+        PutStringInfo(pp, "Press Y to restart");
         GlobInfoStringTime = bak;
         }
     

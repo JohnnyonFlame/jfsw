@@ -2632,7 +2632,7 @@ BonusScreen(PLAYERp pp)
         MNU_DrawString(60, BONUS_LINE(line), ds,1,16);
         
 
-        sprintf(ds,"Press SPACE to continue");
+        sprintf(ds,"Press Y to continue");
         MNU_MeasureString(ds, &w, &h);
         MNU_DrawString(TEXT_TEST_COL(w), 185, ds,1,19);
 
