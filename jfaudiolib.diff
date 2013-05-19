@@ -1,0 +1,170 @@
+diff --git a/Makefile b/Makefile
+index 8683d86..1a64496 100644
+--- a/Makefile
++++ b/Makefile
+@@ -10,7 +10,7 @@ endif
+ 
+ DXROOT ?= $(HOME)/sdks/directx/dx7
+ 
+-CC=gcc
++CC=mipsel-linux-gcc
+ CFLAGS=-g $(OPTLEVEL) -Wall
+ CPPFLAGS=-Iinclude -Isrc
+ 
+diff --git a/Makefile.shared b/Makefile.shared
+index e182e38..993ff6f 100644
+--- a/Makefile.shared
++++ b/Makefile.shared
+@@ -1,6 +1,6 @@
+ JFAUDIOLIB_HAVE_SDL=0
+ JFAUDIOLIB_HAVE_ALSA=0
+-JFAUDIOLIB_HAVE_FLUIDSYNTH=0
++JFAUDIOLIB_HAVE_FLUIDSYNTH=1
+ JFAUDIOLIB_HAVE_VORBIS=0
+ JFAUDIOLIB_USE_SDLMIXER=0
+ 
+@@ -19,7 +19,7 @@ else
+   JFAUDIOLIB_LDFLAGS+= $(shell pkg-config --libs sdl)
+  endif
+  ifeq (yes,$(shell pkg-config --exists alsa && echo yes))
+-  JFAUDIOLIB_HAVE_ALSA=1
++  JFAUDIOLIB_HAVE_ALSA=0
+   JFAUDIOLIB_LDFLAGS+= $(shell pkg-config --libs alsa)
+  endif
+  ifeq (yes,$(shell pkg-config --exists fluidsynth && echo yes))
+diff --git a/include/music.h b/include/music.h
+index b564bcb..3c2260b 100644
+--- a/include/music.h
++++ b/include/music.h
+@@ -61,7 +61,7 @@ const char *MUSIC_ErrorString( int ErrorNumber );
+ int   MUSIC_Init( int SoundCard, int Address );
+ int   MUSIC_Shutdown( void );
+ void  MUSIC_SetMaxFMMidiChannel( int channel );
+-void  MUSIC_SetVolume( int volume );
++void  MUSIC_SetVolume( int volume, int handle );
+ void  MUSIC_SetMidiChannelVolume( int channel, int volume );
+ void  MUSIC_ResetMidiChannelVolumes( void );
+ int   MUSIC_GetVolume( void );
+diff --git a/src/_multivc.h b/src/_multivc.h
+index 4ffe163..89125fb 100644
+--- a/src/_multivc.h
++++ b/src/_multivc.h
+@@ -233,6 +233,8 @@ VoiceNode *MV_AllocVoice( int priority );
+ void MV_SetVoiceMixMode( VoiceNode *voice );
+ void MV_SetVoiceVolume ( VoiceNode *voice, int vol, int left, int right );
+ 
++void MV_SetVHandleVolume(int handle, int volume);
++
+ void MV_ReleaseVorbisVoice( VoiceNode * voice );
+ 
+ // implemented in mix.c
+diff --git a/src/driver_fluidsynth.c b/src/driver_fluidsynth.c
+index 77215a8..a590d99 100644
+--- a/src/driver_fluidsynth.c
++++ b/src/driver_fluidsynth.c
+@@ -47,8 +47,8 @@ enum {
+ };
+ 
+ static int ErrorCode = FSynthErr_Ok;
+-static char *soundFontName = "/usr/share/sounds/sf2/SGM-V2.01.sf2";
+-//static char *soundFontName = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
++
++static char soundFontName[512];
+ 
+ static fluid_settings_t * fluidsettings = 0;
+ static fluid_synth_t * fluidsynth = 0;
+@@ -240,9 +240,12 @@ int FluidSynthDrv_MIDI_Init(midifuncs *funcs)
+         return FSynthErr_Error;
+     }
+ 
+-    //fluid_settings_setint(fluidsettings, "synth.polyphony", 1024);
+-    //fluid_settings_setstr(fluidsettings, "synth.reverb.active", "no");
+-    //fluid_settings_setstr(fluidsettings, "synth.chorus.active", "no");
++    //fluid_settings_setint(fluidsettings, "synth.polyphony", 32);
++    fluid_settings_setstr(fluidsettings, "synth.reverb.active", "no");
++    fluid_settings_setstr(fluidsettings, "synth.chorus.active", "no");
++    fluid_settings_setnum(fluidsettings, "synth.sample-rate", 22050.f);
++		fluid_settings_setstr(fluidsettings, "synth.ladspa.active", "no");
++
+         
+     fluidsynth = new_fluid_synth(fluidsettings);
+     if (!fluidsettings) {
+@@ -279,7 +282,8 @@ int FluidSynthDrv_MIDI_Init(midifuncs *funcs)
+         return FSynthErr_Error;
+     }
+ 
+-    result = fluid_synth_sfload(fluidsynth, soundFontName, 1);
++    memcpy(&soundFontName, getenv("SDL_SOUNDFONTS"), 512);
++    result = fluid_synth_sfload(fluidsynth, &soundFontName, 1);
+     if (result < 0) {
+         FluidSynthDrv_MIDI_Shutdown();
+         ErrorCode = FSynthErr_BadSoundFont;
+diff --git a/src/driver_sdl.c b/src/driver_sdl.c
+index ad39569..af0ccbe 100644
+--- a/src/driver_sdl.c
++++ b/src/driver_sdl.c
+@@ -188,7 +188,7 @@ int SDLDrv_PCM_Init(int * mixrate, int * numchannels, int * samplebits, void * i
+     spec.freq = *mixrate;
+     spec.format = (*samplebits == 8) ? AUDIO_U8 : AUDIO_S16SYS;
+     spec.channels = *numchannels;
+-    spec.samples = 512;
++    spec.samples = 1024;
+     spec.callback = fillData;
+     spec.userdata = 0;
+ 
+diff --git a/src/multivoc.c b/src/multivoc.c
+index 469dc15..c8ed18f 100644
+--- a/src/multivoc.c
++++ b/src/multivoc.c
+@@ -1606,6 +1606,20 @@ void MV_SetVoiceMixMode
+    with the specified handle.
+ ---------------------------------------------------------------------*/
+ 
++void MV_SetVHandleVolume
++	 (
++	 int handle,
++	 int volume
++	 )
++{
++	if (handle == -1)
++		return;
++
++	VoiceNode *voice = MV_GetVoice(handle);
++	if (voice)
++		MV_SetVoiceVolume(voice, volume, volume, volume);
++}
++
+ void MV_SetVoiceVolume
+    (
+    VoiceNode *voice,
+diff --git a/src/music.c b/src/music.c
+index a2df5b9..b2029bb 100644
+--- a/src/music.c
++++ b/src/music.c
+@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ #include "music.h"
+ #include "midi.h"
+ #include "ll_man.h"
++#include "_multivc.h"
+ 
+ #define TRUE  ( 1 == 1 )
+ #define FALSE ( !TRUE )
+@@ -213,13 +214,17 @@ void MUSIC_SetMaxFMMidiChannel
+ 
+ void MUSIC_SetVolume
+    (
+-   int volume
++   int volume,
++   int handle
+    )
+ 
+    {
+    volume = max( 0, volume );
+    volume = min( volume, 255 );
+ 
++ 	 MV_SetVHandleVolume(handle, volume);
++
++
+    /*if ( MUSIC_SoundDevice != -1 )
+       {
+       MIDI_SetVolume( volume );

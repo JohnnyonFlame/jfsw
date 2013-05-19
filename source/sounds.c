@@ -482,6 +482,8 @@ PlaySong(char *song_file_name, int cdaudio_track, BOOL loop, BOOL restart)
 		    #ifndef USE_SDLMIXER
 		    SongVoice = FX_PlayLoopedAuto(SongPtr, SongLength, 0, 0, 0,
 						  255, 255, 255, FX_MUSIC_PRIORITY, MUSIC_ID);
+
+		    SetSongVolume(gs.MusicVolume);
 		    #else
 		    MUSIC_PlaySong(SongPtr, SongLength, MUSIC_LoopSong);  
 		    #endif
@@ -571,7 +573,7 @@ PauseSong(BOOL pauseon)
 void
 SetSongVolume(int volume)
 {
-	MUSIC_SetVolume(volume);
+	MUSIC_SetVolume(volume, SongVoice);
 }
 
 BOOL
@@ -1290,7 +1292,7 @@ void MusicStartup( void )
    if ( status == MUSIC_Ok )
       {
       MusicInitialized = TRUE;
-      MUSIC_SetVolume( MusicVolume );
+      MUSIC_SetVolume( MusicVolume, SongVoice );
       }
    else
       {
