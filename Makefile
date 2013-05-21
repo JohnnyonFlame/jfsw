@@ -12,7 +12,7 @@
 ##
 
 # Debugging options
-RELEASE ?= 0
+RELEASE ?= 1
 
 # DirectX SDK location
 DXROOT ?= $(HOME)/sdks/directx/dx7

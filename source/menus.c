@@ -1600,7 +1600,7 @@ MNU_QuickLoadCustom(UserCall call, MenuItem_p item)
                 ReloadPrompt = FALSE;
                 bak = GlobInfoStringTime;
                 GlobInfoStringTime = 999;
-                PutStringInfo(pp, "Press A to restart");
+                PutStringInfo(pp, "Press Y to restart");
                 GlobInfoStringTime = bak;
                 }
             
