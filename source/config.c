@@ -287,6 +287,8 @@ void CONFIG_SetDefaults( void )
    NumBits = 16;
    MixRate = 44100;
    gs.FlipStereo = 0;
+   gs.MusicVolume = 128;
+   gs.AutoRun = 1;
 
    Bstrcpy(RTSName, DEFAULTRTSFILE);
    Bstrcpy(CommPlayerName, "Kato");
