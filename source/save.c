@@ -1272,7 +1272,7 @@ int LoadGame(short save_num)
     screenpeek = myconnectindex;
     PlayingLevel = Level;
 
-    if (SW_SHAREWARE)
+    //if (SW_SHAREWARE)
     	PlaySong(LevelSong, RedBookSong[Level], TRUE, TRUE);
 
     if (gs.Ambient)    

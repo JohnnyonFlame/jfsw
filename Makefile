@@ -12,7 +12,7 @@
 ##
 
 # Debugging options
-RELEASE ?= 1
+RELEASE ?= 0
 
 # DirectX SDK location
 DXROOT ?= $(HOME)/sdks/directx/dx7
@@ -51,7 +51,8 @@ o=o
 
 ifneq (0,$(RELEASE))
   # debugging disabled
-  debug=-ffast-math
+  debug=-ffast-math -G0 -pipe \
+	-fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -mbranch-likely 
 else
   # debugging enabled
   debug=-ggdb -O0
@@ -63,8 +64,7 @@ CROSS_COMPILE ?=
 
 CC=$(CROSS_COMPILE)gcc
 CXX=$(CROSS_COMPILE)g++
-OURCFLAGS=$(debug) -W -Wall -Wimplicit -Wno-char-subscripts -Wno-unused -pipe \
-	-fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -G0 -mbranch-likely \
+OURCFLAGS=$(debug) -W -Wall -Wimplicit -Wno-char-subscripts -Wno-unused \
 	-fno-pic -funsigned-char -fno-strict-aliasing -DNO_GCC_BUILTINS -march=mips32r2 \
 	-I$(INC) -I$(EINC) -I$(MACTROOT) -I$(AUDIOLIBROOT)/include
 OURCXXFLAGS=-fno-exceptions -fno-rtti
