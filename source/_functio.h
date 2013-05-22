@@ -394,9 +394,7 @@ static char * joystickanalogdefaults[] =
    "analog_strafing",
    "",
    "",
-   "",
-   "",
-   "",
+   ""
    };
 
 

@@ -287,7 +287,6 @@ void CONFIG_SetDefaults( void )
    NumBits = 16;
    MixRate = 44100;
    gs.FlipStereo = 0;
-   gs.MusicVolume = 128;
    gs.AutoRun = 1;
 
    Bstrcpy(RTSName, DEFAULTRTSFILE);
@@ -366,12 +365,18 @@ void CONFIG_SetDefaults( void )
 
    memset(JoystickFunctions, -1, sizeof(JoystickFunctions));
    for (i=0; i < (int32)(sizeof(joystickdefaults)/sizeof(char*)); i++) {
+  		 if (i==MAXJOYBUTTONS)
+  			 break;
       JoystickFunctions[i][0] = CONFIG_FunctionNameToNum( joystickdefaults[i] );
       JoystickFunctions[i][1] = CONFIG_FunctionNameToNum( joystickclickeddefaults[i] );
    }
    
    memset(JoystickDigitalFunctions, -1, sizeof(JoystickDigitalFunctions));
    for (i=0; i < (int32)(sizeof(joystickanalogdefaults)/sizeof(char*)); i++) {
+
+  		 if (i==MAXJOYAXES)
+  			 break;
+
 	JoystickAnalogueScale[i] = 1<<20;
 	JoystickAnalogueDead[i] = 1000;
 	JoystickAnalogueSaturate[i] = 9500;

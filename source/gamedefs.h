@@ -122,7 +122,7 @@ extern "C" {
 
 // Number of JOY axes
 
-#define MAXJOYAXES 20
+#define MAXJOYAXES 6
 
 // Number of GAMEPAD axes
 
